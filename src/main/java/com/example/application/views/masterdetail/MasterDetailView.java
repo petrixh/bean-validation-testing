@@ -20,6 +20,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
+import com.vaadin.flow.data.binder.BinderValidationStatus;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -59,7 +60,7 @@ public class MasterDetailView extends Div implements BeforeEnterObserver {
 
     private final BeanValidationBinder<SamplePerson> binder;
 
-    private SamplePerson samplePerson;
+    //private SamplePerson samplePerson;
 
     private final SamplePersonService samplePersonService;
 
@@ -111,6 +112,7 @@ public class MasterDetailView extends Div implements BeforeEnterObserver {
         // Bind fields. This is where you'd define e.g. validation rules
 
         binder.bindInstanceFields(this);
+        binder.setBean(new SamplePerson());
 
         cancel.addClickListener(e -> {
             clearForm();
@@ -119,15 +121,25 @@ public class MasterDetailView extends Div implements BeforeEnterObserver {
 
         save.addClickListener(e -> {
             try {
-                if (this.samplePerson == null) {
-                    this.samplePerson = new SamplePerson();
+                //Buffering
+                // if (this.samplePerson == null) {
+                //     this.samplePerson = new SamplePerson();
+                // }
+                // binder.writeBean(this.samplePerson);
+                // samplePersonService.save(this.samplePerson);
+
+                BinderValidationStatus<SamplePerson> validate = binder.validate(); 
+                if (validate.isOk()){
+                    SamplePerson bean = binder.getBean();
+                    samplePersonService.save(bean); 
+                }else {
+                    throw new ValidationException(validate.getFieldValidationErrors()   , validate.getBeanValidationErrors()); 
                 }
-                binder.writeBean(this.samplePerson);
-                samplePersonService.save(this.samplePerson);
+                 
                 clearForm();
                 refreshGrid();
                 Notification.show("Data updated");
-                UI.getCurrent().navigate(MasterDetailView.class);
+                //UI.getCurrent().navigate(MasterDetailView.class);
             } catch (ObjectOptimisticLockingFailureException exception) {
                 Notification n = Notification.show(
                         "Error updating the data. Somebody else has updated the record while you were making changes.");
@@ -209,8 +221,17 @@ public class MasterDetailView extends Div implements BeforeEnterObserver {
     }
 
     private void populateForm(SamplePerson value) {
-        this.samplePerson = value;
-        binder.readBean(this.samplePerson);
+        //this.samplePerson = value;
+        //this.samplePersonNoBuffering = value;
+
+        //Buffered, only write to bean on call to writeBean()
+        //binder.readBean(this.samplePerson);
+
+        if(value == null){
+            value = new SamplePerson(); 
+        }
+        //Write through directly to bean
+        binder.setBean(value);
 
     }
 }
