@@ -1,4 +1,5 @@
 /target/
+.devcontainer/
 .idea/
 .vscode/
 .settings
