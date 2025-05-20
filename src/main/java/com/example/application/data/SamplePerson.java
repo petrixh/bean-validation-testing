@@ -2,11 +2,14 @@ package com.example.application.data;
 
 import jakarta.persistence.Entity;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
 import java.time.LocalDate;
 
 @Entity
 public class SamplePerson extends AbstractEntity {
 
+    @NotBlank(message = "FirstName must not be empty")
     private String firstName;
     private String lastName;
     @Email
